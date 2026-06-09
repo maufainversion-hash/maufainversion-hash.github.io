@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TuPortafolioIA — Herramienta financiera con IA para Argentina</title>
+  <meta name="description" content="Armá tu cartera ideal para el mercado argentino con IA. Acciones, CEDEARs, bonos, MEP y más. Gratis, en beta." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #080c14;
+      --bg2:       #0d1220;
+      --bg3:       #111827;
+      --border:    #1e2d40;
+      --accent:    #00d4a8;
+      --accent2:   #0ea5e9;
+      --text:      #e2e8f0;
+      --muted:     #7a8fa8;
+      --card-bg:   #0f1826;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ───────────────────────────────── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(8,12,20,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-size: 1.2rem; font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .beta-badge {
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em;
+      background: rgba(0,212,168,0.15); color: var(--accent);
+      border: 1px solid rgba(0,212,168,0.3);
+      padding: 2px 8px; border-radius: 999px;
+      vertical-align: middle; margin-left: 8px;
+    }
+    .nav-cta {
+      background: var(--accent); color: #080c14;
+      font-weight: 700; font-size: 0.85rem;
+      padding: 0.5rem 1.25rem; border-radius: 8px;
+      text-decoration: none; transition: opacity .2s;
+    }
+    .nav-cta:hover { opacity: 0.85; }
+
+    /* ── HERO ──────────────────────────────── */
+    .hero {
+      min-height: 92vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 4rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,212,168,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(14,165,233,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-eyebrow {
+      font-size: 0.78rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 1.2rem;
+    }
+    .hero h1 {
+      font-size: clamp(2.4rem, 6vw, 4.2rem);
+      font-weight: 800; line-height: 1.1;
+      letter-spacing: -0.03em;
+      max-width: 780px;
+    }
+    .hero h1 .highlight {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      margin-top: 1.5rem; font-size: 1.15rem;
+      color: var(--muted); max-width: 540px;
+      line-height: 1.7;
+    }
+    .hero-actions {
+      margin-top: 2.5rem;
+      display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #080c14; font-weight: 700; font-size: 1rem;
+      padding: 0.85rem 2rem; border-radius: 10px;
+      text-decoration: none; transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 0 30px rgba(0,212,168,0.25);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 45px rgba(0,212,168,0.4); }
+    .btn-secondary {
+      background: transparent; color: var(--text); font-weight: 600; font-size: 1rem;
+      padding: 0.85rem 2rem; border-radius: 10px;
+      border: 1px solid var(--border);
+      text-decoration: none; transition: border-color .2s;
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    .hero-note {
+      margin-top: 1.5rem; font-size: 0.8rem; color: var(--muted);
+    }
+    .hero-note span { color: var(--accent); }
+
+    /* ── TICKER STRIP ──────────────────────── */
+    .ticker-strip {
+      background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      padding: 0.7rem 0; overflow: hidden;
+    }
+    .ticker-inner {
+      display: flex; gap: 3rem;
+      animation: ticker 28s linear infinite;
+      width: max-content;
+    }
+    .ticker-item {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.82rem; font-weight: 500; white-space: nowrap;
+    }
+    .ticker-item .sym { color: var(--muted); }
+    .ticker-item .up  { color: #22c55e; }
+    .ticker-item .dn  { color: #ef4444; }
+    @keyframes ticker {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* ── SECTIONS ──────────────────────────── */
+    section { padding: 5rem 1.5rem; }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-tag {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.15;
+      letter-spacing: -0.02em; max-width: 600px;
+    }
+    .section-sub {
+      margin-top: 0.75rem; color: var(--muted); font-size: 1.05rem;
+      max-width: 520px; line-height: 1.7;
+    }
+
+    /* ── FEATURES GRID ─────────────────────── */
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem; margin-top: 3rem;
+    }
+    .feature-card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.75rem;
+      transition: border-color .25s, transform .25s;
+    }
+    .feature-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+    .feature-icon {
+      font-size: 1.8rem; margin-bottom: 1rem;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 52px; height: 52px; border-radius: 12px;
+      background: rgba(0,212,168,0.1);
+    }
+    .feature-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .feature-card p  { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── HOW IT WORKS ──────────────────────── */
+    .steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0; margin-top: 3rem; position: relative;
+    }
+    .step {
+      text-align: center; padding: 2rem 1.5rem;
+      position: relative;
+    }
+    .step:not(:last-child)::after {
+      content: '→';
+      position: absolute; right: -1rem; top: 2.5rem;
+      font-size: 1.4rem; color: var(--border);
+    }
+    .step-num {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #080c14; font-weight: 800; font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem;
+    }
+    .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .step p  { font-size: 0.88rem; color: var(--muted); }
+
+    /* ── LUCAS SECTION ─────────────────────── */
+    .lucas-section {
+      background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .lucas-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+    }
+    .chat-mock {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.5rem;
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .chat-msg {
+      display: flex; gap: 0.75rem; align-items: flex-start;
+    }
+    .chat-msg.user { flex-direction: row-reverse; }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700;
+    }
+    .avatar.lucas { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #080c14; }
+    .avatar.user  { background: var(--border); color: var(--text); }
+    .bubble {
+      border-radius: 12px; padding: 0.7rem 1rem; font-size: 0.88rem; max-width: 85%;
+      line-height: 1.5;
+    }
+    .bubble.lucas { background: rgba(0,212,168,0.1); border: 1px solid rgba(0,212,168,0.2); color: var(--text); }
+    .bubble.user  { background: var(--border); color: var(--text); }
+    .typing { display: flex; gap: 4px; align-items: center; padding: 0.5rem 0; }
+    .typing span {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent); opacity: 0.5;
+      animation: bounce 1.2s infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: .2s; }
+    .typing span:nth-child(3) { animation-delay: .4s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40%           { transform: translateY(-6px); opacity: 1; }
+    }
+
+    /* ── ASSETS ────────────────────────────── */
+    .assets-row {
+      display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem;
+    }
+    .asset-chip {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.5rem 1rem;
+      font-size: 0.82rem; font-weight: 600;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .asset-chip .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .dot-green  { background: #22c55e; }
+    .dot-blue   { background: #3b82f6; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-purple { background: #a855f7; }
+    .dot-cyan   { background: var(--accent); }
+
+    /* ── BETA CTA ──────────────────────────── */
+    .cta-section {
+      text-align: center; padding: 6rem 1.5rem;
+      background: var(--bg);
+      position: relative; overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(0,212,168,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-section h2 {
+      font-size: clamp(1.8rem, 5vw, 3rem); font-weight: 800;
+      letter-spacing: -0.02em; max-width: 700px; margin: 0 auto;
+    }
+    .cta-section p { margin-top: 1rem; color: var(--muted); font-size: 1.05rem; }
+    .cta-section .btn-primary { display: inline-block; margin-top: 2rem; font-size: 1.1rem; padding: 1rem 2.5rem; }
+
+    /* ── DISCLAIMER ────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 1.5rem; text-align: center;
+      font-size: 0.78rem; color: var(--muted); line-height: 1.6;
+    }
+
+    /* ── RESPONSIVE ────────────────────────── */
+    @media (max-width: 768px) {
+      .lucas-inner { grid-template-columns: 1fr; gap: 2rem; }
+      .step:not(:last-child)::after { display: none; }
+      nav .nav-cta { font-size: 0.8rem; padding: 0.4rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">TuPortafolioIA <span class="beta-badge">BETA</span></div>
+  <a href="https://tuportafolioia-rerla8iftjter6i7f4qeer.streamlit.app/" target="_blank" class="nav-cta">
+    Probar gratis →
+  </a>
+</nav>
+
+<!-- TICKER -->
+<div class="ticker-strip">
+  <div class="ticker-inner">
+    <div class="ticker-item"><span class="sym">YPFD</span> $17.820 <span class="up">+2.1%</span></div>
+    <div class="ticker-item"><span class="sym">GGAL</span> $8.450 <span class="up">+1.4%</span></div>
+    <div class="ticker-item"><span class="sym">MELI</span> $2.105 <span class="up">+0.8%</span></div>
+    <div class="ticker-item"><span class="sym">AL30</span> $63.20 <span class="dn">-0.3%</span></div>
+    <div class="ticker-item"><span class="sym">USD MEP</span> $1.310 <span class="up">+0.5%</span></div>
+    <div class="ticker-item"><span class="sym">SPY</span> $541 <span class="up">+0.6%</span></div>
+    <div class="ticker-item"><span class="sym">AAPL</span> $219 <span class="up">+1.1%</span></div>
+    <div class="ticker-item"><span class="sym">GD30</span> $71.40 <span class="up">+0.9%</span></div>
+    <!-- duplicado para loop continuo -->
+    <div class="ticker-item"><span class="sym">YPFD</span> $17.820 <span class="up">+2.1%</span></div>
+    <div class="ticker-item"><span class="sym">GGAL</span> $8.450 <span class="up">+1.4%</span></div>
+    <div class="ticker-item"><span class="sym">MELI</span> $2.105 <span class="up">+0.8%</span></div>
+    <div class="ticker-item"><span class="sym">AL30</span> $63.20 <span class="dn">-0.3%</span></div>
+    <div class="ticker-item"><span class="sym">USD MEP</span> $1.310 <span class="up">+0.5%</span></div>
+    <div class="ticker-item"><span class="sym">SPY</span> $541 <span class="up">+0.6%</span></div>
+    <div class="ticker-item"><span class="sym">AAPL</span> $219 <span class="up">+1.1%</span></div>
+    <div class="ticker-item"><span class="sym">GD30</span> $71.40 <span class="up">+0.9%</span></div>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-eyebrow">Tu primer paso en el mercado de capitales · Argentina</p>
+  <h1>Empezá a invertir<br/><span class="highlight">aunque nunca lo hayas hecho</span></h1>
+  <p>
+    Respondé 8 preguntas y la app construye una cartera personalizada con
+    acciones locales, CEDEARs, bonos y más. Una herramienta para entender el mercado
+    por primera vez, sin necesitar experiencia previa.
+  </p>
+  <div class="hero-actions">
+    <a href="https://tuportafolioia-rerla8iftjter6i7f4qeer.streamlit.app/" target="_blank" class="btn-primary">
+      Armá tu cartera gratis
+    </a>
+    <a href="#como-funciona" class="btn-secondary">Ver cómo funciona</a>
+  </div>
+  <p class="hero-note">🧪 Estamos en beta — <span>tu feedback mejora la app</span></p>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-inner">
+    <p class="section-tag">Qué hace la app</p>
+    <h2 class="section-title">Diseñada para quien nunca invirtió</h2>
+    <p class="section-sub">Sin jerga técnica, sin hojas de cálculo, sin experiencia previa. Solo respondé preguntas simples y la app hace el resto.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3>¿Cuánto riesgo querés tomar?</h3>
+        <p>8 preguntas simples para entender tu situación. La app arma una distribución pensada para vos — no una genérica para cualquiera.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💼</div>
+        <h3>Tu plata en varios lugares a la vez</h3>
+        <p>Acciones argentinas, dólares, bonos, fondos internacionales y más. No todo en un solo lugar: así se reduce el riesgo.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>¿Qué significa esto?</h3>
+        <p>Lucas es una herramienta de consulta IA. Preguntale cualquier cosa en lenguaje simple: "¿para qué sirve este bono?", "¿qué pasa si sube el dólar?". Te responde sin tecnicismos.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📈</div>
+        <h3>¿Cómo le puede ir a tu plata?</h3>
+        <p>La app te muestra tres escenarios posibles: si las cosas salen bien, más o menos, o mal. Para que inviertas con los ojos abiertos.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>¿Cuál bono conviene comprar?</h3>
+        <p>Un ranking semanal de los mejores bonos del mercado argentino, ordenados de mayor a menor conveniencia. Sin que tengas que analizarlos vos.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💸</div>
+        <h3>¿Cuánto perdés sin invertir?</h3>
+        <p>Calculá en números reales cuánto poder adquisitivo perdés si dejás la plata parada en el banco. El resultado suele sorprender.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="como-funciona" style="background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="section-inner">
+    <p class="section-tag">Cómo funciona</p>
+    <h2 class="section-title">De cero a cartera en 3 minutos</h2>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Describí tu situación</h3>
+        <p>Respondé 8 preguntas sobre tus objetivos, horizonte y tolerancia al riesgo.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>La IA arma tu cartera</h3>
+        <p>El motor de scoring analiza el mercado y distribuye tu capital de forma óptima.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Explorá y preguntá</h3>
+        <p>Simulá escenarios, consultale a Lucas y ajustá hasta que te convenza.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LUCAS CHAT -->
+<section class="lucas-section">
+  <div class="lucas-inner">
+    <div>
+      <p class="section-tag">Lucas — herramienta de consulta</p>
+      <h2 class="section-title">Entendé tu cartera, pregunta por pregunta</h2>
+      <p class="section-sub">Consultale por qué tiene YPF, qué pasa si sube el dólar, o si conviene rotar a bonos. Te explica en lenguaje claro. Las decisiones siempre son tuyas.</p>
+    </div>
+    <div class="chat-mock">
+      <div class="chat-msg">
+        <div class="avatar user">M</div>
+        <div class="bubble user">¿Por qué tengo AL30 en la cartera?</div>
+      </div>
+      <div class="chat-msg">
+        <div class="avatar lucas">L</div>
+        <div class="bubble lucas">
+          El AL30 es un bono soberano en dólares que paga cupones semestrales.
+          Con tu perfil moderado, un 15% en bonos duros te da cobertura cambiaria
+          sin resignar mucho rendimiento. Actualmente tiene un score de 74/100 según
+          el scoring actualizado esta semana. ¿Querés que te explique los riesgos?
+        </div>
+      </div>
+      <div class="chat-msg">
+        <div class="avatar user">M</div>
+        <div class="bubble user">Sí, y también cuánto me rinde en 12 meses</div>
+      </div>
+      <div class="chat-msg">
+        <div class="avatar lucas">
+          <div class="typing"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ACTIVOS -->
+<section>
+  <div class="section-inner">
+    <p class="section-tag">Cobertura</p>
+    <h2 class="section-title">Todos los activos del mercado argentino</h2>
+    <p class="section-sub">Tu cartera puede incluir cualquier combinación de estos instrumentos, según tu perfil.</p>
+    <div class="assets-row">
+      <div class="asset-chip"><div class="dot dot-green"></div> Acciones BYMA</div>
+      <div class="asset-chip"><div class="dot dot-blue"></div> CEDEARs</div>
+      <div class="asset-chip"><div class="dot dot-yellow"></div> ETFs globales</div>
+      <div class="asset-chip"><div class="dot dot-purple"></div> Bonos soberanos</div>
+      <div class="asset-chip"><div class="dot dot-cyan"></div> Dólar MEP</div>
+      <div class="asset-chip"><div class="dot dot-green"></div> ONs corporativas</div>
+      <div class="asset-chip"><div class="dot dot-blue"></div> LECAPs / Letras</div>
+      <div class="asset-chip"><div class="dot dot-yellow"></div> Money Market</div>
+    </div>
+  </div>
+</section>
+
+<!-- MISIÓN -->
+<section style="background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="section-inner" style="text-align: center; max-width: 780px;">
+    <p class="section-tag">Nuestra misión</p>
+    <h2 class="section-title" style="max-width: 100%; font-size: clamp(1.8rem, 4vw, 2.6rem);">
+      Para los que nunca tuvieron acceso
+    </h2>
+    <p style="margin-top: 1.25rem; font-size: 1.1rem; color: var(--muted); line-height: 1.8; max-width: 680px; margin-left: auto; margin-right: auto;">
+      En Argentina, el conocimiento financiero siempre fue un privilegio de pocos.
+      Los que podían pagar un asesor, los que estudiaron economía, los que alguien les enseñó.
+      <br/><br/>
+      TuPortafolioIA nació para cambiar eso.
+      <br/><br/>
+      Queremos ser la semilla que ayude a generaciones futuras — y a las que nunca pudieron — a entender el mercado, proteger sus ahorros y tomar decisiones con más información. Sin tecnicismos, sin barreras de entrada, sin que tengas que confiarle tu plata a un desconocido.
+    </p>
+    <div style="margin-top: 2.5rem; display: flex; justify-content: center; gap: 3rem; flex-wrap: wrap;">
+      <div style="text-align: center;">
+        <div style="font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Gratis</div>
+        <div style="font-size: 0.85rem; color: var(--muted); margin-top: 0.25rem;">Siempre, en beta</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Sin filtros</div>
+        <div style="font-size: 0.85rem; color: var(--muted); margin-top: 0.25rem;">Cualquiera puede usarla</div>
+      </div>
+      <div style="text-align: center;">
+        <div style="font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Local</div>
+        <div style="font-size: 0.85rem; color: var(--muted); margin-top: 0.25rem;">Hecha para Argentina</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BETA -->
+<div class="cta-section">
+  <p class="section-tag" style="margin-bottom: 0.5rem;">Estamos en beta abierta</p>
+  <h2>Probala gratis.<br/>Tu feedback la hace mejor.</h2>
+  <p>Sin cuenta, sin tarjeta. Solo entrás y empezás.</p>
+  <a href="https://tuportafolioia-rerla8iftjter6i7f4qeer.streamlit.app/" target="_blank" class="btn-primary">
+    Acceder a TuPortafolioIA →
+  </a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>⚠️ TuPortafolioIA es una herramienta educativa y no constituye asesoramiento financiero profesional.<br/>
+  Consultá siempre con un asesor habilitado (CNV/CAFCI) antes de tomar decisiones de inversión.</p>
+  <p style="margin-top: 0.75rem; color: #3d5166;">© 2026 TuPortafolioIA · Hecho en Argentina 🇦🇷</p>
+</footer>
+
+</body>
+</html>
