@@ -165,6 +165,9 @@
       display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 1.25rem; margin-top: 3rem;
     }
+    @media (max-width: 480px) {
+      .features-grid { grid-template-columns: 1fr; }
+    }
     .feature-card {
       background: var(--card-bg); border: 1px solid var(--border);
       border-radius: 14px; padding: 1.75rem;
